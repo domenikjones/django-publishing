@@ -9,7 +9,10 @@ class PublishingProfile(models.Model):
     A user profile
     """
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='profile', )
-    regions = models.ManyToManyField("PublishingRegion", through="PublishingProfileRegion", verbose_name=_(u"Regions"), )
+    regions = models.ManyToManyField("PublishingRegion", through="PublishingProfileRegion", verbose_name=_(u"Regions"),)
+
+    def __str__(self):
+        return u"%s" % self.user
 
     class Meta:
         app_label = 'publishing'
