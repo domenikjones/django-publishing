@@ -19,6 +19,13 @@ class PublishingModelMixin(models.Model):
             return u"%s -- DRAFT" % string
         return u"%s" % self.title
 
+    def save(self, *args, **kwargs):
+        # set as draft when created
+        if not self.pk:
+            self.is_draft = True
+        super(PublishingModelMixin, self).save(*args, **kwargs)
+
+
     def has_draft_instance(self):
         # filter for drafts of the instance
         if self.__class__.objects.filter(is_draft=True, draft_of=self).count() > 0:
@@ -119,13 +126,17 @@ class PublishAdminMixin(object):
     def publish_obj(self, request, pk):
         model = self.model
         draft = model.objects.get(pk=pk)
-        original = draft.draft_of
 
-        # copy draft version to original
-        original = clone_fields(original, draft)
-
-        # delete draft
-        draft.delete()
+        # copy draft version to original, when published version exists
+        if draft.draft_of:
+            original = draft.draft_of
+            original = clone_fields(original, draft)
+            # delete draft
+            draft.delete()
+            redirect_pk = original.pk
+        else:
+            draft.is_draft = False
+            redirect_pk = draft.pk
 
         # admin message
         messages.success(request, _(u'Your %s has been successfully been published.' %
@@ -134,7 +145,7 @@ class PublishAdminMixin(object):
         # redirect to original version
         return HttpResponseRedirect(
             reverse("admin:%s_%s_change" %
-                    (model._meta.app_label, model._meta.model_name), args=(original.pk,))
+                    (model._meta.app_label, model._meta.model_name), args=(redirect_pk,))
         )
 
     def unpublish_obj(self, request, pk):

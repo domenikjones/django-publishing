@@ -3,6 +3,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from publishing import CountryNotAvailableException
 
 SUPERUSER = 'superuser'
 ADMINISTRATOR = 'administrator'
@@ -33,6 +34,14 @@ class PublishingProfile(models.Model):
     """
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='profile', verbose_name=_("Auth User"), )
     regions = models.ManyToManyField("PublishingRegion", through="PublishingProfileRegion", verbose_name=_(u"Regions"),)
+
+    def can_do(self, obj, level):
+        try:
+            country = obj.countries
+        except CountryNotAvailableException:
+            raise CountryNotAvailableException(_(u"%s has no countries field." % (obj.__class__.__name__)))
+
+        return True
 
     def __str__(self):
         return u"%s" % self.user
