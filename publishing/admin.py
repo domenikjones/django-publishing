@@ -1,10 +1,16 @@
 from django.contrib import admin
 
-from publishing.models import PublishingProfile, PublishingRegion, PublishingLanguage, PublishingCountry
+from publishing.models import PublishingProfile, PublishingRegion, PublishingLanguage, PublishingCountry, \
+    PublishingProfileRegion
+
+
+class ProfileRegionInlines(admin.TabularInline):
+    model = PublishingProfileRegion
+    extra = 0
 
 
 class PublishingProfileAdmin(admin.ModelAdmin):
-    pass
+    inlines = [ProfileRegionInlines]
 
 
 class PublishingRegionAdmin(admin.ModelAdmin):

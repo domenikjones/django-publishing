@@ -9,8 +9,9 @@ ADMINISTRATOR = 'administrator'
 NONE = 'none'
 
 PUBLISHING_ROLES = (
-    (SUPERUSER, _(u"Superuser")),
     (ADMINISTRATOR, _(u"Administrator")),
+    (SUPERUSER, _(u"Superuser")),
+    (NONE, _(u"-")),
 )
 
 PUBLISHING_LEVELS = {
@@ -30,7 +31,7 @@ class PublishingProfile(models.Model):
     """
     A user profile
     """
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='profile', )
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='profile', verbose_name=_("Auth User"), )
     regions = models.ManyToManyField("PublishingRegion", through="PublishingProfileRegion", verbose_name=_(u"Regions"),)
 
     def __str__(self):
@@ -44,9 +45,12 @@ class PublishingProfile(models.Model):
 
 
 class PublishingProfileRegion(models.Model):
-    profile = models.ForeignKey("PublishingProfile", )
-    region = models.ForeignKey("PublishingRegion", )
+    profile = models.ForeignKey("PublishingProfile", verbose_name=_("Profile"), )
+    region = models.ForeignKey("PublishingRegion", verbose_name=_("Region"), )
     role = models.CharField(_(u"Role"), max_length=45, default="user", choices=PUBLISHING_ROLES, )
+
+    def __str__(self):
+        return u"%s" % _(u"Publishing Region Level")
 
 
 class PublishingRegion(models.Model):
