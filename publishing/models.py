@@ -37,7 +37,7 @@ class PublishingRegion(models.Model):
 
 
 class PublishingCountry(models.Model):
-    iso_code = models.CharField(_(u"ISO 639-1 Code"), default="en", )
+    iso_code = models.CharField(_(u"ISO 639-1 Code"), max_length=2, default="en", )
     title = models.CharField(_(u"Title"), max_length=255, null=True, )
 
     class Meta:
@@ -48,7 +48,7 @@ class PublishingCountry(models.Model):
 
 
 class PublishingLanguage(models.Model):
-    iso_code = models.CharField(_(u"ISO 639-1 Code"), default="en", )
+    iso_code = models.CharField(_(u"ISO 639-1 Code"), max_length=2, default="en", )
     title = models.CharField(_(u"Title"), max_length=255, null=True, )
     models.ManyToManyField("PublishingLanguage", related_name='languages', )
 
