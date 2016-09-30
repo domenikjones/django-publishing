@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from django.db.models import *
-from django.utils.translation import ugettext_lazy as _
 
 
 SIMPLE_FIELDS = (
