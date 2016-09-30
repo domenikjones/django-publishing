@@ -29,6 +29,9 @@ class PublishingRegion(models.Model):
     countries = models.ManyToManyField("PublishingCountry", verbose_name=_(u"Countries"), )
     languages = models.ManyToManyField("PublishingLanguage", verbose_name=_(u"Languages"), )
 
+    def __str__(self):
+        return u"%s" % self.title
+
     class Meta:
         app_label = 'publishing'
         verbose_name = _(u"Region")
@@ -39,6 +42,9 @@ class PublishingRegion(models.Model):
 class PublishingCountry(models.Model):
     iso_code = models.CharField(_(u"ISO 639-1 Code"), max_length=2, default="en", )
     title = models.CharField(_(u"Title"), max_length=255, null=True, )
+
+    def __str__(self):
+        return u"%s" % self.title
 
     class Meta:
         app_label = 'publishing'
@@ -51,6 +57,9 @@ class PublishingLanguage(models.Model):
     iso_code = models.CharField(_(u"ISO 639-1 Code"), max_length=2, default="en", )
     title = models.CharField(_(u"Title"), max_length=255, null=True, )
     models.ManyToManyField("PublishingLanguage", related_name='languages', )
+
+    def __str__(self):
+        return u"%s" % self.title
 
     class Meta:
         app_label = 'publishing'
