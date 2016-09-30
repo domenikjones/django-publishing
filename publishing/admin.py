@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from publishing.models import PublishingProfile, PublishingRegion, PublishingLanguage
+from publishing.models import PublishingProfile, PublishingRegion, PublishingLanguage, PublishingCountry
 
 
 class PublishingProfileAdmin(admin.ModelAdmin):
@@ -15,6 +15,11 @@ class PublishingLanguageAdmin(admin.ModelAdmin):
     pass
 
 
+class PublishingCountryAdmin(admin.ModelAdmin):
+    pass
+
+
 admin.site.register(PublishingProfile, PublishingProfileAdmin)
 admin.site.register(PublishingRegion, PublishingRegionAdmin)
 admin.site.register(PublishingLanguage, PublishingLanguageAdmin)
+admin.site.register(PublishingCountry, PublishingCountryAdmin)
