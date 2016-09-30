@@ -9,7 +9,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name="django-publishing",
-    version="a1",
+    version="0.2-alpha",
     packages=find_packages(),
     license="MIT License",
     description="A simple django app to publish models with a workflow and permissions",
