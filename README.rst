@@ -21,4 +21,4 @@ Quick start
 
 3. Add the admin mixin `PublishAdminMixin` to your admin class.
 
-4. Run `python manage.py migrate` to create the polls models.
+4. Run `python manage.py migrate` to add publishing related fields to models.
