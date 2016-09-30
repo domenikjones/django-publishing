@@ -4,6 +4,28 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 
+SUPERUSER = 'superuser'
+ADMINISTRATOR = 'administrator'
+NONE = 'none'
+
+PUBLISHING_ROLES = (
+    (SUPERUSER, _(u"Superuser")),
+    (ADMINISTRATOR, _(u"Administrator")),
+)
+
+PUBLISHING_LEVELS = {
+    ADMINISTRATOR: [ADMINISTRATOR, SUPERUSER],
+    SUPERUSER: [SUPERUSER],
+    NONE: [],
+}
+
+
+def publisher_can_do(role, level):
+    if level in PUBLISHING_LEVELS[role]:
+        return True
+    return False
+
+
 class PublishingProfile(models.Model):
     """
     A user profile
@@ -24,7 +46,7 @@ class PublishingProfile(models.Model):
 class PublishingProfileRegion(models.Model):
     profile = models.ForeignKey("PublishingProfile", )
     region = models.ForeignKey("PublishingRegion", )
-    role = models.CharField(_(u"Role"), max_length=45, default="user", )
+    role = models.CharField(_(u"Role"), max_length=45, default="user", choices=PUBLISHING_ROLES, )
 
 
 class PublishingRegion(models.Model):
