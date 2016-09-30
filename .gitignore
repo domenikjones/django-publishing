@@ -1,11 +1,12 @@
 # Created by .ignore support plugin (hsz.mobi)
 
-# ide
-.idea/
-
 # python
+.pypirc
 *.pyc
 env/
+
+# ide
+.idea/
 
 # test django project
 project/
