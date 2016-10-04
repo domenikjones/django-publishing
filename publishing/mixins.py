@@ -5,9 +5,100 @@ from django.http.response import HttpResponseRedirect
 from django.urls.base import reverse
 from django.utils.translation import ugettext_lazy as _
 
+from publishing.models import PublishingLanguage, PublishingCountry
 from publishing.utils import clone_fields
 
 
+# COUNTRY
+class LanguageModelMixin(models.Model):
+    language = models.ForeignKey(PublishingLanguage, verbose_name=_(u"Language"),
+                                 related_name="%(app_label)s_%(class)s_contents", null=True, )
+    translation_of = models.ForeignKey('self', blank=True, null=True, related_name='translations',
+                                       on_delete=models.SET_NULL, verbose_name=_(u"Translation of"), )
+
+    class Meta:
+        abstract = True
+
+
+# LANGUAGE
+class CountryModelMixin(models.Model):
+    countries = models.ManyToManyField(PublishingCountry, verbose_name=_(u"Available Countries"), )
+
+    class Meta:
+        abstract = True
+
+
+# REGION
+class PublishingRegionAdminMixin(object):
+
+    @staticmethod
+    def get_request_user_countries(request):
+        return
+
+    @staticmethod
+    def get_request_user_languages(request):
+        return
+
+    def get_queryset(self, request):
+        """
+        filters queryset on the users editorial
+        regions languages and countries.
+
+        :param request:
+        :return:
+        """
+
+        qs = super(PublishingRegionAdminMixin, self).get_queryset(request)
+        # concat countries and languages for user
+        regions = request.user.profile.editorial_regions.all()
+        countries = concat_countries_of_regions(regions)
+        languages = concat_languages_of_regions(regions)
+
+        include_pks = []
+        for item in qs:
+            for country in countries:
+                if country in item.countries.all():
+                    include_pks.append(item.pk)
+
+        return qs.filter(pk__in=include_pks, language__in=languages)
+
+    def get_field_queryset(self, db, db_field, request):
+        if db_field.name == "countries" or db_field.name == "language":
+            regions = request.user.profile.editorial_regions.all()
+            if db_field.name == "language":
+                languages = concat_languages_of_regions(regions)
+                iso_codes = [l.iso_code for l in languages]
+                return db_field.remote_field.model._default_manager.filter(iso_code__in=iso_codes)
+
+            if db_field.name == "countries":
+                countries = concat_countries_of_regions(regions)
+                iso_codes = [c.iso_code for c in countries]
+                return db_field.remote_field.model._default_manager.filter(iso_code__in=iso_codes)
+
+        super().get_field_queryset(db, db_field, request)
+
+
+def concat_countries_of_regions(regions):
+    countries = []
+    for region in regions:
+        for country in region.countries.all():
+            if not country in countries:
+                countries.append(country)
+
+    return countries
+
+
+def concat_languages_of_regions(regions):
+    languages = []
+    for region in regions:
+        for language in region.languages.all():
+            if not language in languages:
+                languages.append(language)
+
+    return languages
+
+
+# PUBLISHING
 class PublishingModelMixin(models.Model):
     is_draft = models.BooleanField(_("Is draft"), default=False, )
     has_draft = models.BooleanField(_("Has draft"), default=False, )
