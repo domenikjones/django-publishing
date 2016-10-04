@@ -36,11 +36,14 @@
 {% block object-tools-items %}
     {{ block.super }}
     
+    {# draft #}
     {% if original.is_draft and original.draft_of %}
         <li class="show-published">
             <a href="{% url opts|admin_urlname:'change' original.draft_of.pk %}">{% trans "Show Published Version" %}</a>
         </li>
     {% endif %}
+
+    {# draft and unpublished #}
     {% if original.is_draft %}
         <li class="delete-draft">
             <a href="{% url 'admin:unpublish' pk=original.pk %}">{% trans "Delete Draft" %}</a>
@@ -50,6 +53,7 @@
         </li>
     {% endif %}
 
+    {# draft #}
     {% if original.has_draft_instance %}
         <li class="show-draft">
             <a href="{% url opts|admin_urlname:'change' original.get_draft_instance.pk %}">
@@ -58,6 +62,7 @@
         </li>
     {% endif %}
 
+    {# published, without draft #}
     {% if not original.is_draft and not original.has_draft_instance %}
         <li class="create-draft">
             <a href="{% url 'admin:create_draft' pk=original.pk %}">{% trans "Create draft" %}</a>

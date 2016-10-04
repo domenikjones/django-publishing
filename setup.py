@@ -11,6 +11,7 @@ setup(
     name="django-publishing",
     version="0.0.2b",
     packages=find_packages(),
+    include_package_data=True,
     license="MIT License",
     description="A simple django app to publish models with a workflow and permissions",
     long_description=README,
