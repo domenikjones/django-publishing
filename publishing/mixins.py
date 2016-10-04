@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from django.contrib import messages
+from django.contrib import admin, messages
 from django.db import models
 from django.http.response import HttpResponseRedirect
 from django.urls.base import reverse
@@ -99,10 +99,47 @@ def concat_languages_of_regions(regions):
 
 
 # PUBLISHING
+PUBLISHING_STATES = (
+    ('new', _(u"New")),
+    ('published', _(u"Published")),
+    ('edited', _(u"Being edited")),
+    ('draft', _(u"Draft")),
+)
+
+
+class PublishingStateFilter(admin.SimpleListFilter):
+    title = _(u"Publishing State")
+    parameter_name = 'publishing_state'
+
+    def lookups(self, request, model_admin):
+        return PUBLISHING_STATES
+
+    def queryset(self, request, queryset):
+        if self.value():
+            value = self.value()
+            if value == "new":
+                return queryset.filter(is_draft=True, draft_of__isnull=True, )
+            if value == "edited":
+                return queryset.filter(is_draft=False, has_draft=True, )
+            if value == "published":
+                return queryset.filter(is_draft=False, has_draft=False, )
+            if value == "draft":
+                return queryset.filter(is_draft=True, draft_of=True, )
+            return queryset
+        else:
+            return queryset
+
+
+class PublishingModelManager(models.Manager):
+    pass
+
+
 class PublishingModelMixin(models.Model):
     is_draft = models.BooleanField(_("Is draft"), default=False, )
     has_draft = models.BooleanField(_("Has draft"), default=False, )
     draft_of = models.ForeignKey("self", related_name="draft", null=True, blank=True, )
+
+    objects = [PublishingModelManager, ]
 
     def __str__(self):
         if self.is_draft:
@@ -139,19 +176,17 @@ class PublishingModelMixin(models.Model):
             return False
         return True
 
-    def clone_fk(self):
-        return
+    def get_publishing_state(self):
+        if self.is_draft and self.draft_of:
+            return dict(PUBLISHING_STATES)['draft']
 
-    def clone_m2m(self):
-        return
+        if self.is_draft:
+            return dict(PUBLISHING_STATES)['new']
 
-    def publish(self):
-        print("Publish %s (%s)" % (self, self.__class__.__name__))
-        return
+        if self.has_draft_instance():
+            return dict(PUBLISHING_STATES)['edited']
 
-    def unpublish(self):
-        print("Unublish %s (%s)" % (self, self.__class__.__name__))
-        return
+        return dict(PUBLISHING_STATES)['published']
 
     class Meta:
         abstract = True
@@ -160,6 +195,12 @@ class PublishingModelMixin(models.Model):
 class PublishAdminMixin(object):
     change_list_template = 'admin/publish_change_list.html'
     change_form_template = 'admin/publish_change_form.html'
+
+    def get_list_filter(self, request):
+        fields = list(super(PublishAdminMixin, self).get_list_filter(request))
+        if 'publishing_state' not in fields:
+            fields.insert(0, PublishingStateFilter)
+        return fields
 
     def get_urls(self):
         """
@@ -219,8 +260,7 @@ class PublishAdminMixin(object):
 
         # copy draft version to original, when published version exists
         if draft.draft_of:
-            original = draft.draft_of
-            original = clone_fields(original, draft)
+            original = clone_fields(draft.draft_of, draft)
             draft.delete()
             redirect_pk = original.pk
         else:
@@ -284,14 +324,21 @@ class PublishAdminMixin(object):
                 if self.is_draft(request):
                     try:
                         if '_reorder' in list_display:
-                            list_display.insert(99, 'draft_of')
+                            list_display.insert(98, 'draft_of')
                         else:
-                            list_display.insert(99, 'draft_of')
+                            list_display.insert(98, 'draft_of')
                     except AttributeError:
                         list_display = ('draft_of', )
+
+            if 'get_draft_instance' in list_display:
+                list_display.remove('get_draft_instance')
         else:
             if 'draft_of' in list_display:
                 list_display.remove('draft_of')
+
+            if 'get_draft_instance' not in list_display:
+                list_display.insert(99, 'get_draft_instance')
+
         return list_display
 
     def get_readonly_fields(self, request, obj=None):
@@ -313,7 +360,7 @@ class PublishAdminMixin(object):
         if len(request.GET) == 0:
             q['is_draft__exact'] = 0
         else:
-            if request.GET.get('is_draft__exact') is 1:
+            if request.GET.get('is_draft__exact'):
                 q['is_draft__exact'] = 1
         request.GET = q
         request.META['QUERY_STRING'] = request.GET.urlencode()
