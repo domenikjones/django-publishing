@@ -16,7 +16,7 @@ setup(
     description="A simple django app to publish models with a workflow and permissions",
     long_description=README,
     url="https://github.com/domenikjones/django-publishing",
-    download_url="https://github.com/domenikjones/django-publishing/tarball/0.1",
+    # download_url="https://github.com/domenikjones/django-publishing/tarball/0.1",
     author="Scholz & Volkmer (Domenik Jones)",
     author_email="d.jones@s-v.de",
     keywords='django model moderation editorial development',
