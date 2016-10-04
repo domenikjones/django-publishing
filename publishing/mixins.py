@@ -13,7 +13,9 @@ try:
     from django.urls.base import reverse
 except:
     # django <= 1.8
-    from django.urls import reverse
+    from django.core.urlresolvers import reverse
+else:
+    raise Exception(_(u"Reverse URLs could not be found."))
 
 
 # COUNTRY
