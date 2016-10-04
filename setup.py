@@ -9,7 +9,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name="django-publishing",
-    version="0.0.3b",
+    version="0.0.3c",
     packages=find_packages(),
     include_package_data=True,
     license="MIT License",
