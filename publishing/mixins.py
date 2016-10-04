@@ -2,11 +2,18 @@ from django.conf.urls import url
 from django.contrib import admin, messages
 from django.db import models
 from django.http.response import HttpResponseRedirect
-from django.urls.base import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from publishing.models import PublishingLanguage, PublishingCountry
 from publishing.utils import clone_fields
+
+# django url reverse
+try:
+    # django > 1.8
+    from django.urls.base import reverse
+except:
+    # django <= 1.8
+    from django.urls import reverse
 
 
 # COUNTRY
