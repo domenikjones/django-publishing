@@ -30,53 +30,57 @@ SIMPLE_FIELDS = (
 )
 
 RELATION_FIELDS = (
-    ForeignKey,
-    OneToOneField,
+    ManyToOneRel,
 )
 
 ADVANCED_RELATION_FIELDS = (
-    ManyToManyField,
+    OneToOneField,
 )
 
 BLACKLIST_FIELDS = (
-    'uuid',
-    '_order',
+    'draft',
     'is_draft',
     'draft_of',
     'has_draft',
+
+    'uuid',
+    '_order',
     'created',
     'modified',
 )
 
 
 def clone_fields(instance, draft):
-    print("Clone field relations for %s from %s (class: %s)" % (instance, draft, instance.__class__.__name__))
+    # print("Clone field relations for '%s' from '%s' (class: %s)" % (instance, draft, instance.__class__.__name__))
 
     # get all fields from model
     model_fields = instance._meta.get_fields()
-    print(instance)
 
     # set instance fields
     for field in model_fields:
 
         # set simple instance attribute
         if type(field) in SIMPLE_FIELDS and field.name not in BLACKLIST_FIELDS:
-            print("set: %s (%s)" % (getattr(draft, field.name, None), field.name))
             setattr(instance, field.name, getattr(draft, field.name, None))
 
         # set relation fields
-
-        # set relation advanced fields
+        instance.save()
+        if type(field) in RELATION_FIELDS and field.name not in BLACKLIST_FIELDS:
+            instance, draft = clone_relations(instance, draft, field)
 
     instance.save()
     return instance
 
 
-def clone_fk(instance, copy):
-    print("Clone foreignkey relations for %s (class: %s)" % instance, instance.__class__.__name__)
-    return
+def clone_relations(instance, copy, field):
+    related_instance_items = getattr(copy, field.name).all()
 
+    for item in related_instance_items:
+        new_item = item.__class__()
+        new_item = clone_fields(new_item, item)
+        getattr(instance, field.name).add(new_item)
+        new_item.is_draft = True
+        new_item.draft_of = item
+        new_item.save()
 
-def clone_m2m(instance, copy):
-    print("Clone m2m relations for %s (class: %s)" % instance, instance.__class__.__name__)
-    return
+    return instance, copy

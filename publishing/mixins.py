@@ -94,7 +94,6 @@ class PublishAdminMixin(object):
     def create_obj(self, request, pk):
         model = self.model
         original = model.objects.get(pk=pk)
-        print(original.title)
 
         # copy original and create draft
         if original.validate_create_draft():
@@ -131,11 +130,11 @@ class PublishAdminMixin(object):
         if draft.draft_of:
             original = draft.draft_of
             original = clone_fields(original, draft)
-            # delete draft
             draft.delete()
             redirect_pk = original.pk
         else:
             draft.is_draft = False
+            draft.save()
             redirect_pk = draft.pk
 
         # admin message
@@ -194,9 +193,9 @@ class PublishAdminMixin(object):
                 if self.is_draft(request):
                     try:
                         if '_reorder' in list_display:
-                            list_display.insert(2, 'draft_of')
+                            list_display.insert(99, 'draft_of')
                         else:
-                            list_display.insert(1, 'draft_of')
+                            list_display.insert(99, 'draft_of')
                     except AttributeError:
                         list_display = ('draft_of', )
         else:
@@ -205,9 +204,9 @@ class PublishAdminMixin(object):
         return list_display
 
     def get_readonly_fields(self, request, obj=None):
-        print(obj.has_draft_instance())
-        if obj.has_draft_instance():
-            return [f.name for f in self.model._meta.fields]
+        if obj:
+            if obj.has_draft_instance():
+                return [f.name for f in self.model._meta.fields]
         return self.readonly_fields
 
     def changelist_view(self, request, extra_context=None):

@@ -36,10 +36,12 @@
 {% block object-tools-items %}
     {{ block.super }}
     
-    {% if original.is_draft %}
+    {% if original.is_draft and original.draft_of %}
         <li class="show-published">
             <a href="{% url opts|admin_urlname:'change' original.draft_of.pk %}">{% trans "Show Published Version" %}</a>
         </li>
+    {% endif %}
+    {% if original.is_draft %}
         <li class="delete-draft">
             <a href="{% url 'admin:unpublish' pk=original.pk %}">{% trans "Delete Draft" %}</a>
         </li>
